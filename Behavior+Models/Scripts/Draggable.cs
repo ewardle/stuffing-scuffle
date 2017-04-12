@@ -13,9 +13,13 @@ using UnityEngine;
 
 public class Draggable : MonoBehaviour 
 {
-	/* TODO: (general) 
-	 * - Make the draggable areas easier to see (show a texture circle on mouseover or something)
-	*/
+	// 
+
+	/* TODO: (general) - Make the draggable areas easier to see (show a texture circle on mouseover or something) */
+
+	// Event broadcasting for when damage is sustained by this limb
+	public delegate void DamageAction(Draggable sender, float intensity);
+	public static event DamageAction OnDamaged;
 
 	// Don't worry about damage during immunity frames
 	private int immuneI = 0;
@@ -31,8 +35,12 @@ public class Draggable : MonoBehaviour
 	private Collider col;
 	private Rigidbody body;
 
-	// TODO: character object hash or reference or something for when we do networked
-	// (so player can only move their own character's parts)
+	// Publicly visible latest change in velocity (impulse) for player-collision-related calculations
+	private float dV;
+	public float Velocity {
+		get { return dV; }
+		private set { dV = value; }
+	}
 
 	// Use this for initialization
 	public void Start()
@@ -91,19 +99,22 @@ public class Draggable : MonoBehaviour
 			physicsI = 0;
 			vPrev = vCurr;
 			vCurr = body.velocity;
-			float dV = (vCurr - vPrev).magnitude;
-			if (!isImmune && dV >= 15.0f && gameObject.name == "Head")
+			dV = (vCurr - vPrev).magnitude;
+			if (!isImmune && dV >= 15.0f)
 			{
 				Debug.Log("Strong impulse of " + dV + " sustained; temporary immunity starting");
 
-				// TODO: do damage stuff either here or another script:
+				// TODO: calculate damage proportion here
 				// - light limb damage on general strong impulse, 
 				// - medium overall damage on strong collision,
 				// - high overall damage if other collider was a rigidbody/other player,
 				//		proportional to velocity difference
 				//		(low damage if you were going faster than them, high damage if you were slower)
-				// (meanwhile, just start immunity frames)
+
+
+				// (For now, just start immunity frames and broadcast "damaged" event with the velocity)
 				isImmune = true;
+				OnDamaged (this, dV);
 			}
 		}
 

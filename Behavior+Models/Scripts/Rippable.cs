@@ -9,18 +9,23 @@ using UnityEngine;
 
 public class Rippable : MonoBehaviour
 {
+	// Event broadcasting for when this limb gets ripped off
+	public delegate void RipAction(Rippable sender);
+	public static event RipAction OnRipped;
+
 	public Joint Bones;
 	public GameObject Mesh;
 	public Renderer Hole;
 
 	private bool isRipped = false;
+	private float integrity = 100.0f;
+
+	// Reference to the draggable limb which calculates hits
+	private Draggable handle;
 
 	public bool Ripped
 	{
-		get
-		{
-			return isRipped;
-		}
+		get { return isRipped; }
 
 		set
 		{
@@ -32,6 +37,12 @@ public class Rippable : MonoBehaviour
 			}
 		}
 	}
+
+	public float Integrity
+	{
+		get { return integrity; }
+		private set { integrity = value; }
+	}
 		
 	// Use this for initialization
 	public void Start()
@@ -42,6 +53,8 @@ public class Rippable : MonoBehaviour
 			Destroy(this);
 		}
 
+		handle = GetComponentInChildren<Draggable> ();
+
 		// Testing: rip immediately
 		////this.Rip();
 
@@ -51,8 +64,21 @@ public class Rippable : MonoBehaviour
 	// Update is called once per frame
 	public void Update()
 	{
-		// TODO: update joint's Break Force and Break Torque according to damage sustained
 		return;
+	}
+
+	// Called when object is loaded
+	public void OnEnable()
+	{
+		// Event listeners enabled
+		Draggable.OnDamaged += this.OnDamage;
+	}
+
+	// Called when script or object is disabled or destroyed
+	public void OnDisable()
+	{
+		// Event listeners disabled
+		Draggable.OnDamaged -= this.OnDamage;
 	}
 
 	public void OnJointBreak(float breakForce)
@@ -82,6 +108,14 @@ public class Rippable : MonoBehaviour
 		// Destroy Joint component to detach and let fall (does nothing if joint already broken through physics)
 		Destroy(Bones);
 
-		// If applicable: accelerate rate of stuffing loss and remove remaining stuffing that was contained in the arm
+		// Broadcast event that this limb was ripped off
+		OnRipped(this);
 	}
+
+	private void OnDamage(Draggable sender, float intensity) {
+		// TODO: reduce integrity, proportional to hit strength, IF this limb was the one damaged
+		if (sender == handle) {
+		}
+	}
+
 }
