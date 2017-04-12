@@ -128,7 +128,7 @@ GameObject:
   - component: {fileID: 95485233165486186}
   m_Layer: 0
   m_Name: basic_doll
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -970,7 +970,7 @@ BoxCollider:
   m_GameObject: {fileID: 1503735837688340}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 1.5058395, y: 0.8804884, z: 0.8804883}
   m_Center: {x: -0.75291973, y: 0.44024408, z: 0.007014632}
@@ -982,7 +982,7 @@ BoxCollider:
   m_GameObject: {fileID: 1446610967795234}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 1.4041936, y: 0.88048816, z: 0.8804883}
   m_Center: {x: 0.2187776, y: -0.44024426, z: 0.005679816}

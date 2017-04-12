@@ -35,6 +35,8 @@ public class Draggable : MonoBehaviour
 	private Collider col;
 	private Rigidbody body;
 
+	private StuffingStatus character;
+
 	// Publicly visible latest change in velocity (impulse) for player-collision-related calculations
 	private float dV;
 	public float Velocity {
@@ -54,6 +56,8 @@ public class Draggable : MonoBehaviour
 		minExtent = Mathf.Min(Mathf.Min(col.bounds.extents.x, col.bounds.extents.y), col.bounds.extents.z);
 		partExtent = minExtent * (1.0f - skinWidth);
 		sqrMinExtent = minExtent * minExtent; // (makes for faster calculations later)
+
+		character = GetComponentInParent<StuffingStatus> ();
 	}
 	
 	// Update is called once per frame
@@ -67,10 +71,10 @@ public class Draggable : MonoBehaviour
 		// Block further movement if going fast enough to "skip" collider
 		Vector3 dP = body.position - pPrev;
 		float sqrDD = dP.sqrMagnitude;
+		RaycastHit hit;
 		if (sqrDD > sqrMinExtent)
 		{
 			float dD = Mathf.Sqrt(sqrDD);
-			RaycastHit hit;
 
 			// Check for obstructions within past movement step
 			if (Physics.Raycast(pPrev, dP, out hit, dD, layer.value))
@@ -100,22 +104,16 @@ public class Draggable : MonoBehaviour
 			vPrev = vCurr;
 			vCurr = body.velocity;
 			dV = (vCurr - vPrev).magnitude;
-			if (!isImmune && dV >= 15.0f)
+			/*if (!isImmune && dV >= 15.0f)
 			{
-				Debug.Log("Strong impulse of " + dV + " sustained; temporary immunity starting");
-
-				// TODO: calculate damage proportion here
-				// - light limb damage on general strong impulse, 
-				// - medium overall damage on strong collision,
-				// - high overall damage if other collider was a rigidbody/other player,
-				//		proportional to velocity difference
-				//		(low damage if you were going faster than them, high damage if you were slower)
-
-
-				// (For now, just start immunity frames and broadcast "damaged" event with the velocity)
+				// Light damage for general strong impulse
+				float intensity = dV;
+				intensity *= GameRules.DamageScale.Impulse;
+				OnDamaged (this, intensity);
+				Debug.Log ("Damaged " + this.name + " with impulse; intensity " + intensity);
+				// Turn on temporary immunity
 				isImmune = true;
-				OnDamaged (this, dV);
-			}
+			}*/
 		}
 
 		if (isImmune)
@@ -129,6 +127,31 @@ public class Draggable : MonoBehaviour
 				// TODO: visual/audio cues as to immunity being on and off
 				Debug.Log("Immunity over");
 			}
+		}
+	}
+
+	public void OnCollisionEnter(Collision hit) {
+		if (!isImmune && hit.impulse.magnitude > 7.0f) {
+			// Damage calculation
+			float intensity = dV;
+			Draggable other = hit.collider.GetComponent<Draggable> ();
+			if (other && other.character != this.character) {
+				// High damage from hitting other player (more if you were going faster, less if going slower)
+				float ddV = Mathf.Abs (dV - other.dV);
+				intensity += (ddV < 0) ? ddV : -ddV;
+				intensity *= GameRules.DamageScale.PlayerCollide;
+				Debug.Log ("Damaged " + this.name + " with other player hit; intensity " + intensity);
+
+				OnDamaged (this, intensity);
+			} else if (hit.collider.GetComponent<CharacterJoint>() == null) {
+				// Moderate damage from hitting non-player object
+				intensity *= GameRules.DamageScale.StaticCollide;
+				Debug.Log ("Damaged " + this.name + " with static collision; intensity " + intensity);
+
+				OnDamaged (this, intensity);
+			}
+			// Turn on temporary immunity
+			isImmune = true;
 		}
 	}
 }

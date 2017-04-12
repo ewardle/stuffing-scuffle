@@ -6,7 +6,13 @@ public class StuffingStatus : MonoBehaviour {
 
 	private List<Draggable> Handles;
 	private List<Rippable> Seams;
-	private int numInitialSeams;
+
+	private float stuffingLevel = 100.0f;
+
+	public float Health {
+		get { return stuffingLevel; }
+		private set{ stuffingLevel = value; }
+	}
 
 	// Use this for initialization
 	void Start () {
@@ -18,12 +24,10 @@ public class StuffingStatus : MonoBehaviour {
 				Seams.Add (seam);
 			}
 		}
-		numInitialSeams = Seams.Count;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
 	}
 
 	// Called when object is loaded
@@ -45,17 +49,25 @@ public class StuffingStatus : MonoBehaviour {
 
 	// Called at a set time interval regardless of framerate
 	void FixedUpdate() {
-		// TODO: Reduce stuffing incrementally, proportional to limb damage sustained
+		// Reduce stuffing incrementally, proportional to limb damage sustained (worse if lost limb)
+		foreach (Rippable limb in Seams) {
+			float limbDamage = 100.0f - limb.Integrity;
+			limbDamage *= (limb.Ripped) ? limb.HoleFactor : limb.LeakFactor;
+			stuffingLevel -= limbDamage;
+			stuffingLevel = Mathf.Max (0.0f, stuffingLevel);
+		}
 	}
 
 	void OnRip(Rippable sender) {
-		// TODO: immediate loss of remaining stuffing from that limb if it belongs to us
+		// Immediate loss of stuffing from that limb if it belongs to us
 		if (Seams.Contains (sender)) {
+			stuffingLevel -= 10 * sender.HoleFactor;
 		}
 	}
 	void OnDamage(Draggable sender, float intensity) {
-		// TODO: immediate loss of some stuffing if it belongs to us
+		// Immediate loss of some stuffing if it belongs to us
 		if (Handles.Contains (sender)) {
+			stuffingLevel -= intensity;
 		}
 	}
 }
