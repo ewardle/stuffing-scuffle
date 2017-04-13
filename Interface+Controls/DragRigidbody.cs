@@ -10,6 +10,8 @@ using UnityEngine.Networking;
 
 public class DragRigidbody : NetworkBehaviour
 {
+	public Camera PlayerCamera;
+
     private float kSpring = 75.0f; // 50.0f default
     private float kDamper = 5.0f; // 5.0f default
     private float kDrag = 100.0f; // 10.0f default
@@ -17,6 +19,12 @@ public class DragRigidbody : NetworkBehaviour
     private float kDistance = 0.0f; // 0.2f default
 
     private SpringJoint mSpringJoint;
+
+	private void Start() {
+		if (PlayerCamera == null) {
+			PlayerCamera = FindCamera ();
+		}
+	}
 
     private void Update()
     {
@@ -26,13 +34,11 @@ public class DragRigidbody : NetworkBehaviour
             return;
         }
 
-        var mainCamera = FindCamera();
-
         // We need to actually hit an object
         RaycastHit hit = new RaycastHit();
         if (!Physics.Raycast(
-				mainCamera.ScreenPointToRay(Input.mousePosition).origin, 
-				mainCamera.ScreenPointToRay(Input.mousePosition).direction, 
+				PlayerCamera.ScreenPointToRay(Input.mousePosition).origin, 
+				PlayerCamera.ScreenPointToRay(Input.mousePosition).direction, 
 				out hit, 
 				100,
 				Physics.DefaultRaycastLayers))
@@ -77,10 +83,9 @@ public class DragRigidbody : NetworkBehaviour
         var oldAngularDrag = mSpringJoint.connectedBody.angularDrag;
         mSpringJoint.connectedBody.drag = kDrag;
         mSpringJoint.connectedBody.angularDrag = kAngularDrag;
-        var mainCamera = FindCamera();
         while (Input.GetMouseButton(0))
         {
-            var ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+			var ray = PlayerCamera.ScreenPointToRay(Input.mousePosition);
 
             mSpringJoint.transform.position = ray.GetPoint(distance);
             yield return null;
@@ -96,9 +101,9 @@ public class DragRigidbody : NetworkBehaviour
 
     private Camera FindCamera()
     {
-        if (GetComponent<Camera>())
+        if (GetComponentInChildren<Camera>())
         {
-            return GetComponent<Camera>();
+            return GetComponentInChildren<Camera>();
         }
 
         return Camera.main;
