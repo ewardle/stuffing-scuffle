@@ -6,8 +6,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class Rippable : MonoBehaviour
+public class Rippable : NetworkBehaviour
 {
 	// Event broadcasting for when this limb gets ripped off
 	public delegate void RipAction(Rippable sender);
