@@ -17,6 +17,10 @@ public class Rippable : MonoBehaviour
 	public GameObject Mesh;
 	public Renderer Hole;
 
+	// Steady damage-over-time scaling if this limb is leaky or entirely ripped off
+	public float LeakFactor;
+	public float HoleFactor;
+
 	private bool isRipped = false;
 	private float integrity = 100.0f;
 
@@ -41,7 +45,12 @@ public class Rippable : MonoBehaviour
 	public float Integrity
 	{
 		get { return integrity; }
-		private set { integrity = value; }
+		private set {
+			if (integrity <= 0.0f) {
+				Ripped = true;
+			}
+			integrity = Mathf.Max (0.0f, value);
+		}
 	}
 		
 	// Use this for initialization
@@ -84,7 +93,7 @@ public class Rippable : MonoBehaviour
 	public void OnJointBreak(float breakForce)
 	{
 		Debug.Log("Broke joint: " + gameObject.name + ", force: " + breakForce);
-		this.Rip();
+		Ripped = true;
 	}
 
 	private void Rip()
@@ -113,8 +122,9 @@ public class Rippable : MonoBehaviour
 	}
 
 	private void OnDamage(Draggable sender, float intensity) {
-		// TODO: reduce integrity, proportional to hit strength, IF this limb was the one damaged
+		// Reduce integrity, proportional to hit strength, if this limb was the one damaged
 		if (sender == handle) {
+			Integrity -= 50*intensity;
 		}
 	}
 

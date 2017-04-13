@@ -8,14 +8,20 @@ public class GameRules : MonoBehaviour
 	public static int ImmunityTime = 50;
 
 	// Scaling factors to apply to different damage types for: impulse, collided impulse, player-collided impulse
-	public static float ScaleImpulse = 0.05f, ScaleCollide = 0.5f, ScaleRigidbodyCollide = 1.0f;
+	public struct DamageScale {
+		public const float Impulse = 0.05f;
+		public const float StaticCollide = 0.5f;
+		public const float PlayerCollide = 1.0f;
+	}
 
 	// Objects for the players
-	public StuffingStatus player0, player1;
+	[HideInInspector]
+	public StuffingStatus[] Players;
 
 	// Use this for initialization
 	public void Start()
 	{
+		Players = GameObject.FindObjectsOfType<StuffingStatus> ();
 	}
 	
 	// Update is called once per frame
