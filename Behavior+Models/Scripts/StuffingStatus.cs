@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class StuffingStatus : MonoBehaviour {
+public class StuffingStatus : NetworkBehaviour {
 
 	public ParticleSystem Leak;
 	public ParticleSystem Burst;
@@ -10,6 +11,7 @@ public class StuffingStatus : MonoBehaviour {
 	private List<Draggable> Handles;
 	private List<Rippable> Seams;
 
+	[SyncVar]
 	private float stuffingLevel = 100.0f;
 
 	public float Health {

@@ -7,11 +7,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 [RequireComponent(typeof(Collider))]
 [RequireComponent(typeof(Rigidbody))]
 
-public class Draggable : MonoBehaviour 
+public class Draggable : NetworkBehaviour 
 {
 	// 
 

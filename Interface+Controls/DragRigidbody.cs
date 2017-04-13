@@ -6,8 +6,9 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class DragRigidbody : MonoBehaviour
+public class DragRigidbody : NetworkBehaviour
 {
     private float kSpring = 75.0f; // 50.0f default
     private float kDamper = 5.0f; // 5.0f default
