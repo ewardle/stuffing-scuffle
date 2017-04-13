@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class StuffingStatus : MonoBehaviour {
 
+	public ParticleSystem Leak;
+	public ParticleSystem Burst;
+
 	private List<Draggable> Handles;
 	private List<Rippable> Seams;
 
@@ -11,7 +14,11 @@ public class StuffingStatus : MonoBehaviour {
 
 	public float Health {
 		get { return stuffingLevel; }
-		private set{ stuffingLevel = value; }
+		private set{
+			if (value < 0.0f && Leak.isPlaying) {
+				Leak.Stop ();
+			}
+			stuffingLevel = Mathf.Max (0.0f, value); }
 	}
 
 	// Use this for initialization
@@ -49,25 +56,40 @@ public class StuffingStatus : MonoBehaviour {
 
 	// Called at a set time interval regardless of framerate
 	void FixedUpdate() {
+		float totalIntegrityLoss = 0.0f;
 		// Reduce stuffing incrementally, proportional to limb damage sustained (worse if lost limb)
 		foreach (Rippable limb in Seams) {
 			float limbDamage = 100.0f - limb.Integrity;
+			totalIntegrityLoss += limbDamage;
 			limbDamage *= (limb.Ripped) ? limb.HoleFactor : limb.LeakFactor;
-			stuffingLevel -= limbDamage;
-			stuffingLevel = Mathf.Max (0.0f, stuffingLevel);
+			Health -= limbDamage;
 		}
+		ParticleSystem.EmissionModule emit = Leak.emission;
+		emit.rateOverDistance = 0.2f + (totalIntegrityLoss / Seams.Count)/100;
+		emit.rateOverTime = (100.0f - Health) / 50;
 	}
 
 	void OnRip(Rippable sender) {
 		// Immediate loss of stuffing from that limb if it belongs to us
 		if (Seams.Contains (sender)) {
-			stuffingLevel -= 10 * sender.HoleFactor;
+			if (Health > 0.0f) {
+				// Big burst of stuffing flies out
+				Burst.Play ();
+				Burst.Play ();
+			}
+			Health -= 10 * sender.HoleFactor;
+
 		}
 	}
 	void OnDamage(Draggable sender, float intensity) {
 		// Immediate loss of some stuffing if it belongs to us
 		if (Handles.Contains (sender)) {
-			stuffingLevel -= intensity;
+			if (Health > 0.0f) {
+				// Small burst of stuffing flies out
+				Burst.Play ();
+			}
+			Health -= intensity;
+
 		}
 	}
 }
