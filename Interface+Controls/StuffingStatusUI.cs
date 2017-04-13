@@ -17,18 +17,20 @@ public class StuffingStatusUI : MonoBehaviour {
 	public Text HealthNumber;
 	public LimbImage[] LimbImages;
 
+	public StuffingStatusUI OpponentStatus;
+
 	// Use this for initialization
 	void Start () {
 		if (Character == null) {
 			Character = GameObject.FindGameObjectWithTag ("GameController").GetComponent<GameRules>().Players [0];
 		}
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		// Update health bars
-		Bar.value = Mathf.MoveTowards (Bar.value, Character.Health, 1.0f);
-		HealthNumber.text = Mathf.CeilToInt(Character.Health).ToString ();
+		Bar.value = Mathf.MoveTowards (Bar.value, Character.stuffingLevel, 1.0f);
+		HealthNumber.text = Mathf.CeilToInt(Character.stuffingLevel).ToString ();
 
 
 	}

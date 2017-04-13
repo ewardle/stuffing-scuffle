@@ -1,8 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class StuffingStatus : MonoBehaviour {
+public class StuffingStatus : NetworkBehaviour {
+
+	public Material LocalMaterial;
 
 	public ParticleSystem Leak;
 	public ParticleSystem Burst;
@@ -10,16 +13,9 @@ public class StuffingStatus : MonoBehaviour {
 	private List<Draggable> Handles;
 	private List<Rippable> Seams;
 
-	private float stuffingLevel = 100.0f;
-
-	public float Health {
-		get { return stuffingLevel; }
-		private set{
-			if (value < 0.0f && Leak.isPlaying) {
-				Leak.Stop ();
-			}
-			stuffingLevel = Mathf.Max (0.0f, value); }
-	}
+	// Accessed by server but should only be modified through Health
+	[SyncVar]
+	public float stuffingLevel = 100.0f;
 
 	// Use this for initialization
 	void Start () {
@@ -35,6 +31,15 @@ public class StuffingStatus : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+	}
+
+	public override void OnStartLocalPlayer() {
+		Debug.Log ("Started local player, changing materials");
+		foreach (SkinnedMeshRenderer render in GetComponentsInChildren<SkinnedMeshRenderer>()) {
+			Material[] mats = render.materials;
+			mats [0] = LocalMaterial;
+			render.materials = mats;
+		}
 	}
 
 	// Called when object is loaded
@@ -62,34 +67,45 @@ public class StuffingStatus : MonoBehaviour {
 			float limbDamage = 100.0f - limb.Integrity;
 			totalIntegrityLoss += limbDamage;
 			limbDamage *= (limb.Ripped) ? limb.HoleFactor : limb.LeakFactor;
-			Health -= limbDamage;
+			DoDamage(limbDamage);
 		}
 		ParticleSystem.EmissionModule emit = Leak.emission;
 		emit.rateOverDistance = 0.2f + (totalIntegrityLoss / Seams.Count)/100;
-		emit.rateOverTime = (100.0f - Health) / 50;
+		emit.rateOverTime = (100.0f - stuffingLevel) / 50;
 	}
 
 	void OnRip(Rippable sender) {
 		// Immediate loss of stuffing from that limb if it belongs to us
 		if (Seams.Contains (sender)) {
-			if (Health > 0.0f) {
+			if (stuffingLevel > 0.0f) {
 				// Big burst of stuffing flies out
 				Burst.Play ();
 				Burst.Play ();
 			}
-			Health -= 10 * sender.HoleFactor;
+			DoDamage(10 * sender.HoleFactor);
 
 		}
 	}
 	void OnDamage(Draggable sender, float intensity) {
 		// Immediate loss of some stuffing if it belongs to us
 		if (Handles.Contains (sender)) {
-			if (Health > 0.0f) {
+			if (stuffingLevel > 0.0f) {
 				// Small burst of stuffing flies out
 				Burst.Play ();
 			}
-			Health -= intensity;
+			DoDamage(intensity);
+		}
+	}
 
+	void DoDamage(float damage) {
+		if (isServer) {
+			stuffingLevel -= damage;
+		}
+		if (stuffingLevel < 0.0f) {
+			if (Leak.isPlaying) {
+				Leak.Stop ();
+			}
+			stuffingLevel = Mathf.Max (0.0f, stuffingLevel); 
 		}
 	}
 }

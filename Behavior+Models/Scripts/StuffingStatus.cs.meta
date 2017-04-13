@@ -1,10 +1,13 @@
 fileFormatVersion: 2
 guid: c8de8df02be724345951262cde6a709a
-timeCreated: 1491882007
+timeCreated: 1492064935
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - LocalMaterial: {fileID: 2100000, guid: df1fc4bd5c052274380839ac7ee61537, type: 2}
+  - Leak: {instanceID: 0}
+  - Burst: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

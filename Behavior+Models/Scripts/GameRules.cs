@@ -15,13 +15,12 @@ public class GameRules : MonoBehaviour
 	}
 
 	// Objects for the players
-	[HideInInspector]
 	public StuffingStatus[] Players;
 
 	// Use this for initialization
 	public void Start()
 	{
-		Players = GameObject.FindObjectsOfType<StuffingStatus> ();
+		Players = new StuffingStatus[2];
 	}
 	
 	// Update is called once per frame
